@@ -1,14 +1,27 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Order, OrderStatus } from './order.entity';
+import { Order } from './order.entity';
+import { EventsGateway } from '../../realtime/events.gateway';
 
 @Injectable()
 export class OrdersService {
-  constructor(@InjectRepository(Order) private repo: Repository<Order>) {}
+  constructor(
+    @InjectRepository(Order) private repo: Repository<Order>,
+    private events: EventsGateway,
+  ) {}
 
-  findAll() { return this.repo.find({ order: { created_at: 'DESC' } }); }
+  async findAll() { return this.repo.find({ order: { created_at: 'DESC' } }); }
   findOne(id: string) { return this.repo.findOne({ where: { id } }); }
-  create(data: Partial<Order>) { return this.repo.save(this.repo.create(data)); }
-  update(id: string, data: Partial<Order>) { return this.repo.update(id, data); }
+  async create(data: Partial<Order>) {
+    const saved = await this.repo.save(this.repo.create(data));
+    this.events.emit('orders.created', saved);
+    return saved;
+  }
+  async update(id: string, data: Partial<Order>) {
+    await this.repo.update(id, data);
+    const updated = await this.findOne(id);
+    this.events.emit('orders.updated', updated);
+    return updated;
+  }
 }

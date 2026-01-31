@@ -7,6 +7,7 @@ import { WalletsModule } from './wallets/wallets.module';
 import { MessagesModule } from './messages/messages.module';
 import { ReviewsModule } from './reviews/reviews.module';
 import { BidsModule } from './bids/bids.module';
+import { EventsModule } from '../realtime/events.module';
 
 const isDbUrl = !!process.env.DATABASE_URL;
 
@@ -33,6 +34,7 @@ const isDbUrl = !!process.env.DATABASE_URL;
     MessagesModule,
     ReviewsModule,
     BidsModule,
+    EventsModule,
   ],
 })
 export class AppModule {}

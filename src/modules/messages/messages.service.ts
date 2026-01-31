@@ -2,10 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Message } from './message.entity';
+import { EventsGateway } from '../../realtime/events.gateway';
 
 @Injectable()
 export class MessagesService {
-  constructor(@InjectRepository(Message) private repo: Repository<Message>) {}
+  constructor(@InjectRepository(Message) private repo: Repository<Message>, private events: EventsGateway) {}
   list() { return this.repo.find({ order: { timestamp: 'ASC' } }); }
-  create(data: Partial<Message>) { return this.repo.save(this.repo.create(data)); }
+  async create(data: Partial<Message>) { const saved = await this.repo.save(this.repo.create(data)); this.events.emit('messages.created', saved); return saved; }
 }
